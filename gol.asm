@@ -26,6 +26,8 @@ LD R3,R4
 CALL PRINTTXT
 RET
 
+# Draw the entire board
+# Regs used locally: R3, RF (global pointer to board cell), R6, R7
 DRAWBOARD:
 CALL DRAW_BORDER
 LDA D_BOARD_DATA
@@ -41,6 +43,8 @@ JMPNZ R7 # DRAW_ROW_LOOP
 CALL DRAW_BORDER
 RET
 
+# Draw upper and lower border
+# Regs used locally: R3, R4, R5
 DRAW_BORDER:
 LDA D_BOARD_W
 LD M3,R4 # board width
@@ -59,6 +63,9 @@ LDA 0x000A
 OUT R3,P0
 RET
 
+
+# Draw a single row of a board, use RF as global pointer to current board cell
+# Regs used locally: R3, R4, R5, R8, R9, RA, RB 
 DRAW_ROW:
 LDA 0x0040 # board character @
 OUT R3,P0
@@ -96,6 +103,10 @@ OUT R3,P0
 RET
 
 
+
+
+# Print text pointed by R4
+# Regs used locally: R3, R5, R6, R7
 PRINTTXT: # R4 contains text start address (i.e. counter)
 LD M4,R5 # counter
 LDA END_PRINTTXT
