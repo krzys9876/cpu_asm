@@ -112,12 +112,19 @@ LDA D_BOARD_H
 LD M3,R6 # board height (counter)
 LDA CALC_ROW_LOOP # loop address
 LD R3,R7
-CALC_ROW_LOOP:
 
+CALC_ROW_LOOP:
+LDA D_BOARD_W
+LD M3,R4 # board width
+LDA CALC_CELL_LOOP
+LD R3,R5 # loop address
+
+CALC_CELL_LOOP:
+DEC R4
+JMPNZ R5 #CALC_CELL_LOOP
 DEC R6
 JMPNZ R7 # CALC_ROW_LOOP
 RET
-
 
 
 # Print text pointed by R4
