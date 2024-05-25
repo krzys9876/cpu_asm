@@ -104,7 +104,7 @@ OUT R3,P0
 RET
 
 # Calculate neighbourhood
-# Regs used locally: R3, RF (global pointer to board cell), R6, R7
+# Regs used locally: R3, RF (global pointer to board cell), R6, R7, R5, R4, RE
 CALCULATE:
 LDA D_BOARD_DATA
 LD R3,RF # global pointer to current board data cell
@@ -120,6 +120,38 @@ LDA CALC_CELL_LOOP
 LD R3,R5 # loop address
 
 CALC_CELL_LOOP:
+LD MF,RE # initial cell value
+
+# 8 positions 
+#Right neighbour
+LD RE,RD
+LDA 0xF000 
+AND RD,R3
+LDA 0x1000
+ADD RD,R3
+LDA 0x0001
+AND RE,R3
+ADD RE,RD
+LD RE,MF
+
+
+#TBD
+#Lower right neighbour
+#TBD
+#Lower neighbour
+#TBD
+#Lower left neighbour
+#TBD
+#Left neighbour
+#TBD
+#Upper left neighbour
+#TBD
+#Upper neighbour
+#TBD
+#Upper right neighbour
+#TBD
+
+INC RF
 DEC R4
 JMPNZ R5 #CALC_CELL_LOOP
 DEC R6
