@@ -8,6 +8,7 @@ CALL CLEARSCR
 START:
 #CALL HOME
 CALL DRAWBOARD
+CALL CALCULATE
 INC RD
 JMPI START
 
@@ -102,6 +103,20 @@ LDA 0x000A
 OUT R3,P0
 RET
 
+# Calculate neighbourhood
+# Regs used locally: R3, RF (global pointer to board cell), R6, R7
+CALCULATE:
+LDA D_BOARD_DATA
+LD R3,RF # global pointer to current board data cell
+LDA D_BOARD_H
+LD M3,R6 # board height (counter)
+LDA CALC_ROW_LOOP # loop address
+LD R3,R7
+CALC_ROW_LOOP:
+
+DEC R6
+JMPNZ R7 # CALC_ROW_LOOP
+RET
 
 
 
@@ -145,7 +160,7 @@ D_BOARD_H:
 D_BOARD_DATA:
 # assume there's enough space here
 # data format: bits 12-15 - neighbours count, bit 0 - current state, bit 1 - next state
-.DATA 0x8800,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .DATA 0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0
 .DATA 0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0
