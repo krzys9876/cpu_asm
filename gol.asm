@@ -277,6 +277,10 @@ ADD RE,R3
 CALC_ONE_NEIGHBOUR_END:
 RET
 
+# Update board state
+UPDATE:
+RET
+
 
 # Print text pointed by R4
 # Regs used locally: 
