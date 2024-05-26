@@ -118,7 +118,7 @@ RET
 # Calculate neighbourhood
 # Regs used locally: 
 # R3 - scratch
-# RF global pointer to board cell
+# RF - global pointer to board cell
 # R5, R7 - jump addresses
 # R4 - horizontal position (desc)
 # R6 - vertical position (desc)
@@ -254,6 +254,8 @@ CONT_UPPER_RIGHT:
 
 LD RE,MF # load calculated neighbours back to memory
 
+CALL CALC_NEXT_STATE
+
 INC RF
 DEC R4
 JMPNZ R5 #CALC_CELL_LOOP
@@ -275,6 +277,48 @@ JMPIZ CALC_ONE_NEIGHBOUR_END
 LDA 0x1000 # Add 1 to neighbours counter
 ADD RE,R3
 CALC_ONE_NEIGHBOUR_END:
+RET
+
+# Calculate next state using previously calculated number of alive neighbours
+# Regs used locally:
+# RF - global pointer to board cell
+# R3 - scratch
+# RC - scratch
+# Rules:
+# 1. Any live cell with fewer than two live neighbors dies, as if by underpopulation.
+# 2. Any live cell with two or three live neighbors lives on to the next generation.
+# 3. Any live cell with more than three live neighbors dies, as if by overpopulation.
+# 4. Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
+CALC_NEXT_STATE:
+LD MF,RC
+LDA 0xFFEF # reset next state (bit 4)
+AND RC,R3
+# Rule 1. 0 or 1 member - alive cell dies
+LDA 0x0001
+CMP RC,R3
+JMPIZ NEXT_DEAD
+LDA 0x1001
+CMP RC,R3
+JMPIZ NEXT_DEAD
+# Rule 2. 2 or 3 members - alive cell remains alive
+LDA 0x2001
+CMP RC,R3
+JMPIZ NEXT_ALIVE
+LDA 0x3001
+CMP RC,R3
+JMPIZ NEXT_ALIVE
+# Rule 4. dead cell with 3 neighbours becomes alive
+LDA 0x3000
+CMP RC,R3
+JMPIZ NEXT_ALIVE
+# Rule 3. and all other cases - cell becomes / remains dead
+NEXT_DEAD: # do nothing - next state is reset at beginning of this routine
+RET
+
+NEXT_ALIVE:
+LDA 0x0010 # set bit 4
+OR RC,R3
+LD RC,MF # load next state back to memory
 RET
 
 # Update board state
@@ -325,7 +369,7 @@ D_BOARD_H:
 .ORG 0x1000
 D_BOARD_DATA:
 # assume there's enough space here
-# data format: bits 12-15 - neighbours count, bit 0 - current state, bit 1 - next state
+# data format: bits 12-15 - neighbours count, bit 0 - current state, bit 4 - next state
 .DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .DATA 0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0
