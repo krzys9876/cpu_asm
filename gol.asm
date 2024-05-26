@@ -5,15 +5,15 @@ LD R3,RD
 
 CALL CLEARSCR
 
-START:
-CALL HOME
-CALL DRAWBOARD
-CALL CALCULATE
-CALL UPDATE
-INC RD
+# Global regs:
+# RD - main loop counter
 
-#ENDLESS:
-#JMPI ENDLESS
+START:
+CALL HOME # cursor - go home
+CALL DRAWBOARD # redraw entire board
+CALL CALCULATE # calculate g.o.l. rules
+CALL UPDATE # update cell state
+INC RD
 
 JMPI START
 
@@ -294,7 +294,7 @@ RET
 # 3. Any live cell with more than three live neighbors dies, as if by overpopulation.
 # 4. Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
 CALC_NEXT_STATE:
-LD MF,RC # start with current state
+LD MF,RC # start with current state, NOTE: next state is reset at the beginning of calculation
 
 # Rule 1. 0 or 1 member - alive cell dies
 LDA 0x0001
