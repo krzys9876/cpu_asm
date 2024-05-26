@@ -1,20 +1,19 @@
 .ORG 0x0000 # START
 
+# Global regs:
+# RD - main loop counter
 LDA 0
 LD R3,RD
 
 CALL CLEARSCR
 
-# Global regs:
-# RD - main loop counter
-
+# Main loop
 START:
 CALL HOME # cursor - go home
 CALL DRAWBOARD # redraw entire board
 CALL CALCULATE # calculate g.o.l. rules
 CALL UPDATE # update cell state
 INC RD
-
 JMPI START
 
 CLEARSCR:
