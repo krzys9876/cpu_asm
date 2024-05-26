@@ -11,6 +11,10 @@ CALL DRAWBOARD
 CALL CALCULATE
 CALL UPDATE
 INC RD
+
+ENDLESS:
+JMPI ENDLESS
+
 JMPI START
 
 CLEARSCR:
@@ -290,9 +294,8 @@ RET
 # 3. Any live cell with more than three live neighbors dies, as if by overpopulation.
 # 4. Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
 CALC_NEXT_STATE:
-LD MF,RC
-LDA 0xFFEF # reset next state (bit 4)
-AND RC,R3
+LD MF,RC # start with current state
+
 # Rule 1. 0 or 1 member - alive cell dies
 LDA 0x0001
 CMP RC,R3
@@ -300,6 +303,7 @@ JMPIZ NEXT_DEAD
 LDA 0x1001
 CMP RC,R3
 JMPIZ NEXT_DEAD
+
 # Rule 2. 2 or 3 members - alive cell remains alive
 LDA 0x2001
 CMP RC,R3
@@ -307,12 +311,18 @@ JMPIZ NEXT_ALIVE
 LDA 0x3001
 CMP RC,R3
 JMPIZ NEXT_ALIVE
+
 # Rule 4. dead cell with 3 neighbours becomes alive
 LDA 0x3000
 CMP RC,R3
 JMPIZ NEXT_ALIVE
+
 # Rule 3. and all other cases - cell becomes / remains dead
-NEXT_DEAD: # do nothing - next state is reset at beginning of this routine
+
+NEXT_DEAD: 
+LDA 0xFFEF # reset bit 4
+AND RC,R3
+LD RC,MF # load next state back to memory
 RET
 
 NEXT_ALIVE:
@@ -321,7 +331,7 @@ OR RC,R3
 LD RC,MF # load next state back to memory
 RET
 
-# Update board state
+# Updatw board - copy next state to current state
 UPDATE:
 RET
 
