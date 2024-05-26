@@ -104,7 +104,15 @@ OUT R3,P0
 RET
 
 # Calculate neighbourhood
-# Regs used locally: R3, RF (global pointer to board cell), R6, R7, R5, R4, RE
+# Regs used locally: 
+# R3 - scratch
+# RF global pointer to board cell
+# R5, R7 - jump addresses
+# R4 - horizontal position (desc)
+# R6 - vertical position (desc)
+# RE - current cell value
+# RC - scratch
+
 CALCULATE:
 LDA D_BOARD_DATA
 LD R3,RF # global pointer to current board data cell
@@ -115,47 +123,109 @@ LD R3,R7
 
 CALC_ROW_LOOP:
 LDA D_BOARD_W
-LD M3,R4 # board width
+LD M3,R4 # board width (counter)
 LDA CALC_CELL_LOOP
 LD R3,R5 # loop address
 
 CALC_CELL_LOOP:
 LD MF,RE # initial cell value
+LDA 0x0FFF
+AND RE,R3 # reset neighbours counter
 
 # 8 positions 
-#Right neighbour
-LD RE,RD
-LDA 0xF000 
-AND RD,R3
-LDA 0x1000
-ADD RD,R3
-LDA 0x0001
-AND RE,R3
-ADD RE,RD
-LD RE,MF
+# Right neighbour
+#LD RF, RD
+#INC RD # pointer to right neighbour
+LDA 1 # check if not right border
+CMP R4,R3
+JMPIZ CONT_RIGHT 
+CALL CALC_ONE_NEIGHBOUR
+CONT_RIGHT:
 
-
-#TBD
 #Lower right neighbour
-#TBD
+LDA 1 # check if not right border
+CMP R4,R3
+JMPIZ CONT_LOWER_RIGHT
+LDA 1 # check if lower border
+CMP R6,R3
+JMPIZ CONT_LOWER_RIGHT
+CALL CALC_ONE_NEIGHBOUR
+CONT_LOWER_RIGHT:
+
 #Lower neighbour
-#TBD
+LDA 1 # check if lower border
+CMP R6,R3
+JMPIZ CONT_LOWER
+CALL CALC_ONE_NEIGHBOUR
+CONT_LOWER:
+
 #Lower left neighbour
-#TBD
+LDA D_BOARD_W # check if left border
+LD M3,RC
+CMP R4,RC
+JMPIZ CONT_LOWER_LEFT
+LDA 1 # check if lower border
+CMP R6,R3
+JMPIZ CONT_LOWER_LEFT
+CALL CALC_ONE_NEIGHBOUR
+CONT_LOWER_LEFT:
+
 #Left neighbour
-#TBD
+LDA D_BOARD_W # check if left border
+LD M3,RC
+CMP R4,RC
+JMPIZ CONT_LEFT
+CALL CALC_ONE_NEIGHBOUR
+CONT_LEFT:
+
 #Upper left neighbour
-#TBD
+LDA D_BOARD_W # check if left border
+LD M3,RC
+CMP R4,RC
+JMPIZ CONT_UPPER_LEFT
+LDA D_BOARD_H # check if upper border
+LD M3,RC
+CMP R6,RC
+JMPIZ CONT_UPPER_LEFT
+CALL CALC_ONE_NEIGHBOUR
+CONT_UPPER_LEFT:
+
 #Upper neighbour
-#TBD
+LDA D_BOARD_H # check if upper border
+LD M3,RC
+CMP R6,RC
+JMPIZ CONT_UPPER
+CALL CALC_ONE_NEIGHBOUR
+CONT_UPPER:
+
 #Upper right neighbour
-#TBD
+LDA 1 # check if not right border
+CMP R4,R3
+JMPIZ CONT_UPPER_RIGHT
+LDA D_BOARD_H # check if upper border
+LD M3,RC
+CMP R6,RC
+JMPIZ CONT_UPPER_RIGHT
+CALL CALC_ONE_NEIGHBOUR
+CONT_UPPER_RIGHT:
+
+LD RE,MF # load calculated neighbours back to memory
 
 INC RF
 DEC R4
 JMPNZ R5 #CALC_CELL_LOOP
 DEC R6
 JMPNZ R7 # CALC_ROW_LOOP
+RET
+
+
+# check if neighbour cell is alive
+# Regs used locally:
+# RD - pointer to neighbour
+# RE - currennt cell value - to be increased if neighbour is alive
+CALC_ONE_NEIGHBOUR:
+LDA 0x1000 # Add 1 to neighbours counter
+ADD RE,R3
 RET
 
 
