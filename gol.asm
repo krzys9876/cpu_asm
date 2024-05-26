@@ -9,6 +9,7 @@ START:
 #CALL HOME
 CALL DRAWBOARD
 CALL CALCULATE
+CALL UPDATE
 INC RD
 JMPI START
 
@@ -28,7 +29,11 @@ CALL PRINTTXT
 RET
 
 # Draw the entire board
-# Regs used locally: R3, RF (global pointer to board cell), R6, R7
+# Regs used locally: 
+# R3 - scratch
+# RF - global pointer to board cell
+# R6 - vertical position (desc)
+# R7 - loop address
 DRAWBOARD:
 CALL DRAW_BORDER
 LDA D_BOARD_DATA
@@ -45,7 +50,10 @@ CALL DRAW_BORDER
 RET
 
 # Draw upper and lower border
-# Regs used locally: R3, R4, R5
+# Regs used locally: 
+# R3 - scratch
+# R4 - horizontal position (desc)
+# R5 - loop address
 DRAW_BORDER:
 LDA D_BOARD_W
 LD M3,R4 # board width
@@ -66,7 +74,11 @@ RET
 
 
 # Draw a single row of a board, use RF as global pointer to current board cell
-# Regs used locally: R3, R4, R5, R8, R9, RA, RB 
+# Regs used locally: 
+# R3 - scratch
+# R4 - horizontal position (desc)
+# R5 - loop address
+# R8, R9, RA, RB - scratches
 DRAW_ROW:
 LDA 0x0040 # board character @
 OUT R3,P0
@@ -267,7 +279,11 @@ RET
 
 
 # Print text pointed by R4
-# Regs used locally: R3, R5, R6, R7
+# Regs used locally: 
+# R3 - scratch
+# R4 - parameter - start address
+# R5 - counter
+# R6, R7 - loop addresses
 PRINTTXT: # R4 contains text start address (i.e. counter)
 LD M4,R5 # counter
 LDA END_PRINTTXT
