@@ -112,6 +112,7 @@ RET
 # R6 - vertical position (desc)
 # RE - current cell value
 # RC - scratch
+# RB - pointer to neighbour
 
 CALCULATE:
 LDA D_BOARD_DATA
@@ -132,13 +133,13 @@ LD MF,RE # initial cell value
 LDA 0x0FFF
 AND RE,R3 # reset neighbours counter
 
-# 8 positions 
+# 8 positions (clock-wise starting with right)
 # Right neighbour
-#LD RF, RD
-#INC RD # pointer to right neighbour
 LDA 1 # check if not right border
 CMP R4,R3
 JMPIZ CONT_RIGHT 
+LD RF, RB
+INC RB # move right
 CALL CALC_ONE_NEIGHBOUR
 CONT_RIGHT:
 
@@ -149,6 +150,11 @@ JMPIZ CONT_LOWER_RIGHT
 LDA 1 # check if lower border
 CMP R6,R3
 JMPIZ CONT_LOWER_RIGHT
+LD RF, RB
+INC RB # move right
+LDA D_BOARD_W # move down one row
+LD M3,RC
+ADD RB,RC
 CALL CALC_ONE_NEIGHBOUR
 CONT_LOWER_RIGHT:
 
@@ -156,6 +162,10 @@ CONT_LOWER_RIGHT:
 LDA 1 # check if lower border
 CMP R6,R3
 JMPIZ CONT_LOWER
+LDA D_BOARD_W # move down one row
+LD M3,RC
+LD RF, RB
+ADD RB,RC
 CALL CALC_ONE_NEIGHBOUR
 CONT_LOWER:
 
@@ -167,6 +177,11 @@ JMPIZ CONT_LOWER_LEFT
 LDA 1 # check if lower border
 CMP R6,R3
 JMPIZ CONT_LOWER_LEFT
+LD RF, RB
+DEC RB # move left
+LDA D_BOARD_W # move down one row
+LD M3,RC
+ADD RB,RC
 CALL CALC_ONE_NEIGHBOUR
 CONT_LOWER_LEFT:
 
@@ -175,6 +190,8 @@ LDA D_BOARD_W # check if left border
 LD M3,RC
 CMP R4,RC
 JMPIZ CONT_LEFT
+LD RF, RB
+DEC RB # move left
 CALL CALC_ONE_NEIGHBOUR
 CONT_LEFT:
 
@@ -187,6 +204,11 @@ LDA D_BOARD_H # check if upper border
 LD M3,RC
 CMP R6,RC
 JMPIZ CONT_UPPER_LEFT
+LD RF, RB
+DEC RB # move left
+LDA D_BOARD_W # move up one row
+LD M3,RC
+SUB RB,RC
 CALL CALC_ONE_NEIGHBOUR
 CONT_UPPER_LEFT:
 
@@ -195,6 +217,10 @@ LDA D_BOARD_H # check if upper border
 LD M3,RC
 CMP R6,RC
 JMPIZ CONT_UPPER
+LDA D_BOARD_W # move up one row
+LD M3,RC
+LD RF, RB
+SUB RB,RC
 CALL CALC_ONE_NEIGHBOUR
 CONT_UPPER:
 
@@ -206,6 +232,11 @@ LDA D_BOARD_H # check if upper border
 LD M3,RC
 CMP R6,RC
 JMPIZ CONT_UPPER_RIGHT
+LD RF, RB
+INC RB # move right
+LDA D_BOARD_W # move up one row
+LD M3,RC
+SUB RB,RC
 CALL CALC_ONE_NEIGHBOUR
 CONT_UPPER_RIGHT:
 
@@ -221,11 +252,17 @@ RET
 
 # check if neighbour cell is alive
 # Regs used locally:
-# RD - pointer to neighbour
+# RB - pointer to neighbour
 # RE - currennt cell value - to be increased if neighbour is alive
+# RC - scratch
 CALC_ONE_NEIGHBOUR:
+LD MB,RC # check if neighbour is alive (1 bit)
+LDA 0x0001
+AND RC,R3
+JMPIZ CALC_ONE_NEIGHBOUR_END
 LDA 0x1000 # Add 1 to neighbours counter
 ADD RE,R3
+CALC_ONE_NEIGHBOUR_END:
 RET
 
 
