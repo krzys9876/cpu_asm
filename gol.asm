@@ -6,14 +6,14 @@ LD R3,RD
 CALL CLEARSCR
 
 START:
-#CALL HOME
+CALL HOME
 CALL DRAWBOARD
 CALL CALCULATE
 CALL UPDATE
 INC RD
 
-ENDLESS:
-JMPI ENDLESS
+#ENDLESS:
+#JMPI ENDLESS
 
 JMPI START
 
@@ -146,8 +146,8 @@ LD R3,R5 # loop address
 
 CALC_CELL_LOOP:
 LD MF,RE # initial cell value
-LDA 0x0FFF
-AND RE,R3 # reset neighbours counter
+LDA 0x000F
+AND RE,R3 # reset neighbours counter and next state
 
 # 8 positions (clock-wise starting with right)
 # Right neighbour
@@ -331,8 +331,52 @@ OR RC,R3
 LD RC,MF # load next state back to memory
 RET
 
-# Updatw board - copy next state to current state
+# Update board - copy next state to current state
+# Regs used locally: 
+# R3 - scratch
+# RF - global pointer to board cell
+# R5, R7 - jump addresses
+# R4 - horizontal position (desc)
+# R6 - vertical position (desc)
+# RE, RC - scratches
+
 UPDATE:
+LDA D_BOARD_DATA
+LD R3,RF # global pointer to current board data cell
+LDA D_BOARD_H
+LD M3,R6 # board height (counter)
+LDA UPDATE_ROW_LOOP # loop address
+LD R3,R7
+
+UPDATE_ROW_LOOP:
+LDA D_BOARD_W
+LD M3,R4 # board width (counter)
+LDA UPDATE_CELL_LOOP
+LD R3,R5 # loop address
+
+UPDATE_CELL_LOOP:
+LD MF,RE # initial cell value
+LD RE,RC # copy value for comparison
+LDA 0x0010
+AND RC,R3 # check next state
+JMPIZ UPDATE_DEAD
+
+LDA 0x0001
+OR RE,R3
+LD RE,MF
+JMPI UPDATE_CELL_LOOP_END
+
+UPDATE_DEAD:
+LDA 0xFFFE
+AND RE,R3
+LD RE,MF
+
+UPDATE_CELL_LOOP_END:
+INC RF
+DEC R4
+JMPNZ R5 #CALC_CELL_LOOP
+DEC R6
+JMPNZ R7 # CALC_ROW_LOOP
 RET
 
 
