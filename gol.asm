@@ -335,7 +335,7 @@ RET
 # Regs used locally: 
 # R3 - scratch
 # RF - global pointer to board cell
-# R5, R7 - jump addresses
+# R5, R7, R8, R9 - jump addresses
 # R4 - horizontal position (desc)
 # R6 - vertical position (desc)
 # RE, RC - scratches
@@ -347,6 +347,10 @@ LDA D_BOARD_H
 LD M3,R6 # board height (counter)
 LDA UPDATE_ROW_LOOP # loop address
 LD R3,R7
+LDA UPDATE_DEAD # loop address
+LD R3,R8
+LDA UPDATE_CELL_LOOP_END # loop address
+LD R3,R9
 
 UPDATE_ROW_LOOP:
 LDA D_BOARD_W
@@ -359,12 +363,12 @@ LD MF,RE # initial cell value
 LD RE,RC # copy value for comparison
 LDA 0x0010
 AND RC,R3 # check next state
-JMPIZ UPDATE_DEAD
+JMPZ R8 # UPDATE_DEAD
 
 LDA 0x0001
 OR RE,R3
 LD RE,MF
-JMPI UPDATE_CELL_LOOP_END
+JMP R9 # UPDATE_CELL_LOOP_END
 
 UPDATE_DEAD:
 LDA 0xFFFE
