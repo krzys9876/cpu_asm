@@ -287,6 +287,7 @@ RET
 # RF - global pointer to board cell
 # R3 - scratch
 # RC - scratch
+# https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 # Rules:
 # 1. Any live cell with fewer than two live neighbors dies, as if by underpopulation.
 # 2. Any live cell with two or three live neighbors lives on to the next generation.
